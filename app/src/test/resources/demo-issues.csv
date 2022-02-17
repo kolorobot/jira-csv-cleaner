@@ -1,0 +1,8 @@
+Summary,Description,Issue Type,Status,Issue Key,Issue id,Priority,Outward issue link (Relates),Outward issue link (Relates),Custom field (Epic Link),Comment,Comment,Attachment,Attachment
+Epic #1,,Epic,New,DEMO-1,101,Medium,,,,,,,
+Story #1,Demo Story #1,Story,New,DEMO-2,102,Medium,DEMO-3,DEMO-4,DEMO-1,,,,
+Story #2,Demo Story #2,Story,New,DEMO-3,103,Medium,DEMO-2,DEMO-4,DEMO-1,,,,
+Story #3,Demo Story #3,Story,New,DEMO-4,104,Medium,DEMO-1,DEMO-2,DEMO-1,,,,
+Story #4,Demo Story #5,Story,New,DEMO-5,105,Medium,DEMO-1,,DEMO-404,,,,
+Task with attachments #1,Task with 1 attachment,Task,New,DEMO-6,106,Medium,,,,,,26/Nov/21 10:44 AM;john.doe;demo.png;https://picsum.photos/200,
+Task with attachments #2,Task with 2 attachments,Task,New,DEMO-7,107,Medium,,,,,,26/Nov/21 10:44 AM;john.doe;demo-1.png;https://picsum.photos/200,26/Nov/21 10:44 AM;john.doe;demo-2.png;https://picsum.photos/200

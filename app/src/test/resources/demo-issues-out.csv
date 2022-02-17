@@ -1,0 +1,49 @@
+"Attachment","Attachment","CREATED","CUSTOM FIELD (EPIC LINK)","CUSTOM FIELD (STORY POINTS)","Comment","Comment","DESCRIPTION","DUE DATE","ISSUE ID","ISSUE KEY","ISSUE TYPE","ORIGINAL ESTIMATE","Outward issue link (Relates)","Outward issue link (Relates)","PARENT ID","PRIORITY","REMAINING ESTIMATE","REPORTER","STATUS","SUMMARY"
+"","","","","","","","
+
+----
+
+Migrated from https://example.com/browse/DEMO-1","","101","DEMO-1","Epic","","","","","Medium","","","New","Epic #1"
+"","","","101","","","","Demo Story #1
+
+----
+
+Migrated from https://example.com/browse/DEMO-2","","102","DEMO-2","Story","","103","104","","Medium","","","New","Story #1"
+"","","","101","","","","Demo Story #2
+
+----
+
+Migrated from https://example.com/browse/DEMO-3","","103","DEMO-3","Story","","102","104","","Medium","","","New","Story #2"
+"","","","101","","","","Demo Story #3
+
+----
+
+Migrated from https://example.com/browse/DEMO-4","","104","DEMO-4","Story","","101","102","","Medium","","","New","Story #3"
+"","","","","","","","Demo Story #5
+
+----
+
+Migrated from https://example.com/browse/DEMO-5","","105","DEMO-5","Story","","101","","","Medium","","","New","Story #4"
+"26/Nov/21 10:44 AM;john.doe;demo.png;https://picsum.photos/200","","","","","","","Task with 1 attachment
+
+----
+
+Attachments
+
+- Name: demo.png, Link: https://picsum.photos/200
+
+----
+
+Migrated from https://example.com/browse/DEMO-6","","106","DEMO-6","Task","","","","","Medium","","","New","Task with attachments #1"
+"26/Nov/21 10:44 AM;john.doe;demo-1.png;https://picsum.photos/200","26/Nov/21 10:44 AM;john.doe;demo-2.png;https://picsum.photos/200","","","","","","Task with 2 attachments
+
+----
+
+Attachments
+
+- Name: demo-1.png, Link: https://picsum.photos/200
+- Name: demo-2.png, Link: https://picsum.photos/200
+
+----
+
+Migrated from https://example.com/browse/DEMO-7","","107","DEMO-7","Task","","","","","Medium","","","New","Task with attachments #2"

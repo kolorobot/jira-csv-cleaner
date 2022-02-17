@@ -1,0 +1,42 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+dependencies {
+
+    compileOnly 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+
+    implementation('org.slf4j:slf4j-api:1.7.32')
+    implementation('ch.qos.logback:logback-classic:1.2.10')
+
+    implementation('com.opencsv:opencsv:5.5.2')
+
+    implementation('info.picocli:picocli:4.6.3')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+
+    testImplementation 'org.assertj:assertj-core:3.22.0'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.22'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+}
+
+application {
+    mainClass = 'pl.codeleak.java.App'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
