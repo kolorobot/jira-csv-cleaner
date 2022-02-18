@@ -29,6 +29,9 @@ public class JiraIssue {
     @CsvBindByName(column = "Reporter")
     private String reporter;
 
+    @CsvBindByName(column = "Assignee")
+    private String assignee;
+
     @CsvBindByName(column = "Priority")
     private String priority;
 
@@ -50,8 +53,20 @@ public class JiraIssue {
     @CsvBindByName(column = "Remaining Estimate")
     private String remainingEstimate;
 
+    @CsvBindByName(column = "Resolved")
+    private String resolved;
+
+    @CsvBindByName(column = "Resolution")
+    private String resolution;
+
+    @CsvBindByName(column = "Custom field (Epic Name)")
+    private String epicName;
+
     @CsvBindByName(column = "Custom field (Epic Link)")
     private String epicLink;
+
+    @CsvBindByName(column = "Custom field (Epic Link as Epic Name)")
+    private String epicLinkAsEpicName;
 
     @CsvBindAndJoinByName(column = "Outward issue link.*", elementType = String.class)
     private MultiValuedMap<String, String> relatedIssues;

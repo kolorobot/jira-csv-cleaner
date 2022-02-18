@@ -21,7 +21,7 @@ class JiraCsvCleanerTest {
         var output = tmpDir.resolve("demo-issues-out.csv");
 
         // act
-        new CommandLine(new JiraCsvCleaner()).execute(input.toString(), output.toString(), "--url=https://example.com/browse");
+        new CommandLine(new JiraCsvCleaner()).execute(input.toString(), output.toString(), "--url=https://example.com/browse", "--email=example.com");
 
         // assert
         assertThat(output).hasSameTextualContentAs(Path.of("src/test/resources/demo-issues-out.csv"));

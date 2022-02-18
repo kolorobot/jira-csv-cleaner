@@ -9,9 +9,10 @@ import picocli.CommandLine.*;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,6 +34,9 @@ class JiraCsvCleaner implements Callable<Integer> {
     @Option(names = {"-a", "--attachments"}, description = "Include attachments links in description", defaultValue = "true")
     private boolean includeAttachmentsLinks;
 
+    @Option(names = {"-e", "--email"}, description = "Append email domain name to the user accounts (e.g. example.com")
+    private Optional<String> domain;
+
     @Override
     public Integer call() throws Exception {
 
@@ -45,8 +49,10 @@ class JiraCsvCleaner implements Callable<Integer> {
 
         var issuesOut = issuesIn.stream()
                 .peek(issue -> updateDescription(issue))
+                .peek(issue -> setEpicLinkAsEpicName(issuesIn, issue))
                 .peek(issue -> updateEpicLink(issuesIn, issue))
                 .peek(issue -> updateIssueLinks(issuesIn, issue))
+                .peek(issue -> updateAccounts(issue))
                 .collect(Collectors.toList());
 
         try (var writer = new FileWriter(output)) {
@@ -55,6 +61,7 @@ class JiraCsvCleaner implements Callable<Integer> {
         }
         return 0;
     }
+
 
     private void updateDescription(JiraIssue issue) {
         if (includeAttachmentsLinks) {
@@ -66,12 +73,11 @@ class JiraCsvCleaner implements Callable<Integer> {
 
     private void appendAttachmentsLinksToDescription(JiraIssue issue) {
         var attachments = issue.getAttachments();
-        var hasAttachments = attachments != null && !attachments.isEmpty();
-        if (!hasAttachments) {
+        if (isNullOrEmpty(attachments)) {
             return;
         }
         var attachmentsLinks = attachments.values().stream()
-                .filter(attachmentsLine -> attachmentsLine != null && !attachmentsLine.isBlank())
+                .filter(attachmentLine -> !isNullOrEmpty(attachmentLine))
                 .map(attachmentLine -> attachmentLine.split(";"))
                 .map(attachmentRecord -> "- Name: " + attachmentRecord[2] + ", Link: " + attachmentRecord[3])
                 .collect(Collectors.joining("\n"));
@@ -85,17 +91,27 @@ class JiraCsvCleaner implements Callable<Integer> {
         issue.setDescription(issue.getDescription() + tail);
     }
 
+    private void setEpicLinkAsEpicName(List<JiraIssue> issuesIn, JiraIssue issue) {
+        var epicLink = issue.getEpicLink();
+        if (isNullOrEmpty(epicLink)) {
+            return;
+        }
+        issue.setEpicLinkAsEpicName(findEpicNameByIssueKey(epicLink, issuesIn));
+    }
+
+
     private static void updateEpicLink(List<JiraIssue> issuesIn, JiraIssue issue) {
         var epicLink = issue.getEpicLink();
-        if (epicLink == null || epicLink.isBlank()) {
+        if (isNullOrEmpty(epicLink)) {
             return;
         }
         issue.setEpicLink(findIssueIdByIssueKey(epicLink, issuesIn));
     }
 
+
     private static void updateIssueLinks(List<JiraIssue> issues, JiraIssue issue) {
         MultiValuedMap<String, String> relatedIssuesKeys = issue.getRelatedIssues();
-        if (relatedIssuesKeys == null || relatedIssuesKeys.isEmpty()) {
+        if (isNullOrEmpty(relatedIssuesKeys)) {
             return;
         }
         MultiValuedMap<String, String> relatedIssuesIds = new ArrayListValuedHashMap<>();
@@ -103,19 +119,96 @@ class JiraCsvCleaner implements Callable<Integer> {
         issue.setRelatedIssues(relatedIssuesIds);
     }
 
+    private void updateAccounts(JiraIssue issue) {
+        if (domain.isEmpty()) {
+            return;
+        }
+        var domainValue = domain.get();
+        appendDomain(issue.getAssignee(), domainValue).ifPresent(issue::setAssignee);
+        appendDomain(issue.getReporter(), domainValue).ifPresent(issue::setReporter);
+        updateAccountsInMultiValueMap(domainValue, "Comment", issue.getComments(), issue::setComments);
+        updateAccountsInMultiValueMap(domainValue, "Attachment", issue.getAttachments(), issue::setAttachments);
+    }
+
+    private void updateAccountsInMultiValueMap(String domain, String key, MultiValuedMap<String, String> input, Consumer<MultiValuedMap<String, String>> updater) {
+        if (isNullOrEmpty(input)) {
+            return;
+        }
+
+        List<String> updatedValues = updateAccounts(domain, input);
+        if (isNullOrEmpty(updatedValues)) {
+            return;
+        }
+
+        MultiValuedMap<String, String> result = new ArrayListValuedHashMap<>();
+        result.putAll(key, updatedValues);
+        updater.accept(result);
+    }
+
+    private List<String> updateAccounts(String domain, MultiValuedMap<String, String> input) {
+        // number of output lines must match number of input lines
+        return input.values().stream()
+                .map(line -> updateAccountsInSingleLine(domain, line))
+                .collect(Collectors.toList());
+
+    }
+
+    private String updateAccountsInSingleLine(String domain, String line) {
+
+        if (isNullOrEmpty(line)) {
+            return line;
+        }
+        var delimiter = ";";
+        var record = line.split(delimiter);
+        appendDomain(record[1], domain).ifPresent(value -> record[1] = value);
+        return String.join(delimiter, record);
+    }
+
+    private Optional<String> appendDomain(String account, String domain) {
+        if (isNullOrEmpty(account)) {
+            return Optional.empty();
+        }
+        if (!account.contains("@")) {
+            account = account + "@" + domain;
+            return Optional.of(account);
+        }
+        return Optional.empty();
+    }
+
     private static List<String> mapKeysToIds(List<JiraIssue> issues, Collection<String> value) {
         return value.stream().map(issueKey -> findIssueIdByIssueKey(issueKey, issues)).collect(Collectors.toList());
     }
 
+
+    private static String findEpicNameByIssueKey(String issueKey, List<JiraIssue> issues) {
+        return findByIssueKey(issueKey, issues, jiraIssue -> Optional.ofNullable(jiraIssue.getEpicName()));
+    }
+
     private static String findIssueIdByIssueKey(String issueKey, List<JiraIssue> issues) {
-        var notFoundValue = "";
-        if (issueKey == null) {
-            return notFoundValue;
+        return findByIssueKey(issueKey, issues, jiraIssue -> Optional.ofNullable(jiraIssue.getIssueId()));
+    }
+
+    private static String findByIssueKey(String issueKey, List<JiraIssue> issues, Function<JiraIssue, Optional<String>> mapper) {
+        var defaultValue = "";
+        if (isNullOrEmpty(issueKey)) {
+            return defaultValue;
         }
         return issues.stream()
                 .filter(issue -> issue.getIssueKey().equals(issueKey))
-                .map(JiraIssue::getIssueId)
+                .map(value -> mapper.apply(value).orElse(defaultValue))
                 .findFirst()
-                .orElse(notFoundValue);
+                .orElse(defaultValue);
+    }
+
+    private static boolean isNullOrEmpty(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private static boolean isNullOrEmpty(Collection value) {
+        return value == null || value.isEmpty();
+    }
+
+    private static boolean isNullOrEmpty(MultiValuedMap value) {
+        return value == null || value.isEmpty();
     }
 }
